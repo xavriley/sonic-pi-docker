@@ -28,12 +28,45 @@ When that's up you'll be rewarded with a beep
 vagrant docker-exec -- sonic_pi "play 70"
 ```
 
+For something slightly more fun try
+
+```
+vagrant docker-exec -- sonic_pi "$(wget -O - https://gist.githubusercontent.com/xavriley/ab0e7ad9b956c18af9f9/raw/68157657a9324e37fa8868a6137af6ace6952e30/wxg_piece.rb)"
+# Listen to the output for a while
+vagrant docker-exec -- sonic_pi "stop"
+```
+
+NB with that last command it's actually the OSX host that's downloading the gist,
+not the Docker container which is just being fed a string.
+
 ## Rationale
 
 I'm looking to get Docker working so that we can have a way to run sandboxed
 Sonic Pi code on a server for recording Gists in a sandbox and the like. It would also help
 in some development situations, mainly to test against a similar distro to Raspbian
 but on a faster machine than the RPi.
+
+## Goals
+
+- [x] Make beeps using sonic\_pi gem
+- [ ] Run sshd server
+- [ ] Run the GUI via X11 and ssh forwarding
+- [ ] Remove the `--privileged` flag so code is truly sandboxed
+
+## Related blog posts
+
+I had to do a lot of research just to figure out how to get Linux audio
+to work in VirtualBox in the way I wanted. In that sense I think this repo
+has made some progress in that area and I can see useful approaches in here for
+other libraries that used `jackd` like SuperCollider or Overtone. With that in mind,
+heres a "reading list" of useful resources in Dockerizing audio applications in general.
+
+- [Running GUI apps with Docker](http://fabiorehm.com/blog/2014/09/11/running-gui-apps-with-docker/)
+- [Docker containers on the Desktop](https://blog.jessfraz.com/post/docker-containers-on-the-desktop/)
+- [Docker Desktop](https://github.com/rogaha/docker-desktop)
+- [Running an SSH service on Docker](https://docs.docker.com/examples/running_ssh_service/)
+- [SuperCollider and jackd the easy way](http://carlocapocasa.com/supercollider-jack-the-easy-way/)
+- [Top 5 wrong ways to fix your (Linux) audio](http://voices.canonical.com/david.henningsson/2012/07/13/top-five-wrong-ways-to-fix-your-audio/)
 
 ## `boot2docker` won't work for this
 
@@ -57,107 +90,3 @@ top of that, any changes you made would get nuked on upgrade. That means
 `boot2docker` is a no-go until I can figure out how to do a build with
 sound support \(which I've started on
 [here](https://github.com/xavriley/boot2docker)\)
-
-## Setting up a Docker host in VirtualBox with sound
-
-If you already run Linux you can skip all this...
-
-I opted to install a fresh copy of Debian Jessie into a VirtualBox image
-with 2Gb of memory and 8Gb of storage. The audio for this VM *must* be
-set to
-
-```
-Host Driver: CoreAudio
-Controller:  ICH AC97
-```
-
-Once you have Jessie installed and running you need to:
-
-### Install SuperCollider
-
-This step probably isn't necessary but it's a good way of exercising all
-the audio setup of the VM.
-
-```
-$ sudo apt-get install supercollider
-
-$ sudo usermod -aG audio <yourusername>
-
-$ echo "@audio    -    rtprio    99" >> /etc/security/limits.conf
-$ echo "@audio    -    memlock    unlimited" >> /etc/security/limits.conf
-
-$ echo "/usr/bin/jackd -v -m -dalsa -r44100 -p4096 -n3 -s -Chw:I82801AAICH -Phw:I82801AAICH" > ~/.jackdrc
-```
-
-### Disabling Pulseaudio
-
-Pulseaudio is great but it's going to get in our way later. When we give
-control of the soundcard over to Docker we need to make sure that no
-other devices are using, which means disabling any audio applications
-(like jackd or pulseaudio) in the host VM. The way described [here](https://wiki.archlinux.org/index.php/PulseAudio/Examples#The_old_way) is not
-the only way to do this, but it is the one that I got to work.
-
-> To use PulseAudio with JACK, JACK must be started before PulseAudio,
-> using whichever method one prefers. PulseAudio then needs to be started
-> loading the two relevant modules. Edit /etc/pulse/default.pa, and change
-> the following region:
-
-```
-### Load audio drivers statically (it is probably better to not load
-### these drivers manually, but instead use module-hal-detect --
-### see below -- for doing this automatically)
-#load-module module-alsa-sink
-#load-module module-alsa-source device=hw:1,0
-#load-module module-oss device="/dev/dsp" sink_name=output
-source_name=input
-#load-module module-oss-mmap device="/dev/dsp" sink_name=output
-source_name=input
-#load-module module-null-sink
-#load-module module-pipe-sink
-
-### Automatically load driver modules depending on the hardware
-available
-.ifexists module-udev-detect.so
-load-module module-udev-detect
-.else
-### Alternatively use the static hardware detection module (for systems
-that
-### lack udev support)
-load-module module-detect
-.endif
-```
-
-> to the following:
-
-```
-### Load audio drivers statically (it is probably better to not load
-### these drivers manually, but instead use module-hal-detect --
-### see below -- for doing this automatically)
-#load-module module-alsa-sink
-#load-module module-alsa-source device=hw:1,0
-#load-module module-oss device="/dev/dsp" sink_name=output
-source_name=input
-#load-module module-oss-mmap device="/dev/dsp" sink_name=output
-source_name=input
-#load-module module-null-sink
-#load-module module-pipe-sink
-load-module module-jack-source
-load-module module-jack-sink
-
-### Automatically load driver modules depending on the hardware
-available
-#.ifexists module-udev-detect.so
-#load-module module-udev-detect
-#.else
-### Alternatively use the static hardware detection module (for systems
-that
-### lack udev support)
-#load-module module-detect
-#.endif
-```
-
-> Basically, this prevents module-udev-detect from loading.
-> module-udev-detect will always try to grab the sound card (JACK has
-> already done that, so this will cause an error). Also, the JACK source
-> and sink must be explicitly loaded.
-
