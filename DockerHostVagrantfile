@@ -1,0 +1,50 @@
+Vagrant.configure("2") do |config|
+
+  config.vm.provision "docker"
+
+  config.vm.provision "shell", inline: <<-SHELL
+  set -e # Stop on any error
+
+  sudo sed -i '/tty/!s/mesg n/tty -s \\&\\& mesg n/' /root/.profile
+
+  # Taken from https://github.com/GeoffreyPlitt/vagrant-audio/blob/master/Vagrantfile
+  # --------------- SETTINGS ----------------
+  # Other settings
+  export DEBIAN_FRONTEND=noninteractive
+  sudo apt-get update
+  # ---- OSS AUDIO
+  sudo usermod -a -G audio vagrant
+  sudo apt-get install -y linux-sound-base alsa-base alsa-utils linux-headers-3.13.0-53 debconf-utils
+  if [[ ! -L /lib/modules/$(uname -r)/source && ! -d /lib/modules/$(uname -r)/source ]]
+  then
+    sudo ln -s /usr/src/linux-headers-$(uname -r)/ /lib/modules/$(uname -r)/source
+  fi
+  sudo debconf-set-selections <<< "linux-sound-base linux-sound-base/sound_system select  alsa"
+  echo "READY."
+  # have to reboot for drivers to kick in, but only the first time of course
+  if [ ! -f ~/runonce ]
+  then
+    touch ~/runonce
+    sudo reboot
+  fi
+
+  # The following line terminates all ssh connections. Therefore
+  # Vagrant will be forced to reconnect.
+  # That's a workaround to have the docker command in the PATH
+  ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill
+SHELL
+
+  config.vm.define "dockerhost"
+  config.vm.box = "ubuntu/trusty64"
+  config.vm.network "forwarded_port",
+    guest: 4557, host: 4557, protocol: "tcp"
+  config.ssh.forward_x11 = true # useful since some audio testing programs use x11
+
+  config.vm.provider :virtualbox do |vb|
+      vb.name = "dockerhost"
+      vb.memory = 2048
+      vb.cpus = 4
+      vb.customize ["modifyvm", :id, '--audio', 'coreaudio', '--audiocontroller', 'ac97'] # choices: hda sb16 ac97
+  end
+
+end
