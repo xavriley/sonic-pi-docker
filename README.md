@@ -39,6 +39,24 @@ vagrant docker-exec -- sonic_pi "stop"
 NB with that last command it's actually the OSX host that's downloading the gist,
 not the Docker container which is just being fed a string.
 
+To stop the Docker container just run
+
+```
+vagrant halt
+```
+
+to rebuild from the Docker file (don't worry about the error)
+
+```
+vagrant reload; vagrant up
+```
+
+and to shut down the Docker host image (the big Ubuntu VM that's actually running docker)
+
+```
+VAGRANT_VAGRANTFILE=DockerHostVagrantfile vagrant halt
+```
+
 ## Rationale
 
 I'm looking to get Docker working so that we can have a way to run sandboxed
