@@ -22,8 +22,14 @@ RUN apt-get update && \
     libxrender1 \
     libxt6 \
     xz-utils \
-    --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/*
+    openssh-server pwgen \
+    --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir -p /var/run/sshd && \
+    sed -i "s/UsePrivilegeSeparation.*/UsePrivilegeSeparation no/g" /etc/ssh/sshd_config && \
+    sed -i "s/PermitRootLogin without-password/PermitRootLogin yes/g" /etc/ssh/sshd_config
+
+RUN echo 'root:sonicpi' | chpasswd
 
 ENV LANG C.UTF-8
 
@@ -74,10 +80,18 @@ RUN sudo gem install sonic-pi-cli
 
 RUN echo "eval \`dbus-launch --auto-syntax 2>&1\`" > ~/.bash_profile
 
+EXPOSE 22
+
 # CMD ["/bin/bash", "-l", "-c", "/usr/src/app/app/server/bin/sonic-pi-server.rb"]
 # TCP not working for some reason
 # CMD ["/bin/bash", "-l", "-c", "/usr/src/app/app/server/bin/sonic-pi-server.rb -t"]
 
 # At some point we might be able to get X11 forwarding working
 # to run the QT app inside Docker as well
-CMD ["/bin/bash", "-i", "-l", "-c", "/usr/src/app/app/gui/qt/rp-app-bin"]
+#CMD ["/bin/bash", "-i", "-l", "-c", "/usr/src/app/app/gui/qt/rp-app-bin"]
+
+USER root
+
+# Must be run as root for sshd to work
+RUN /usr/bin/ssh-keygen -A
+CMD /usr/sbin/sshd -D
