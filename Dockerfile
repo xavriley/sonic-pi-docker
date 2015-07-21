@@ -32,6 +32,15 @@ RUN apt-get update && \
     echo "X11Forwarding yes" >> /etc/ssh/sshd_config && \
     echo "X11UseLocalhost no" >> /etc/ssh/sshd_config
 
+# TODO
+# * sc3 plugins
+# - clone sc3 plugins repo git://github.com/supercollider/sc3-plugins.git
+# - do a git submodult init and update at root dir
+# - sudo apt-get install supercollider-dev fftw3-dev
+# - mkdir build && cd build
+# - cmake -DSC_PATH=/usr/include/SuperCollider
+# - make
+
 ENV LANG C.UTF-8
 
 # RUN mv /etc/security/limits.d/audio.conf.disabled /etc/security/limits.d/audio.conf
