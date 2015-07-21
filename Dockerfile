@@ -22,14 +22,15 @@ RUN apt-get update && \
     libxrender1 \
     libxt6 \
     xz-utils \
+    xauth \
     openssh-server pwgen \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/* && \
     mkdir -p /var/run/sshd && \
     sed -i "s/UsePrivilegeSeparation.*/UsePrivilegeSeparation no/g" /etc/ssh/sshd_config && \
-    sed -i "s/PermitRootLogin without-password/PermitRootLogin yes/g" /etc/ssh/sshd_config
-
-RUN echo 'root:sonicpi' | chpasswd
+    sed -i "s/PermitRootLogin without-password/PermitRootLogin yes/g" /etc/ssh/sshd_config && \
+    echo "X11Forwarding yes" >> /etc/ssh/sshd_config && \
+    echo "X11UseLocalhost no" >> /etc/ssh/sshd_config
 
 ENV LANG C.UTF-8
 
@@ -45,6 +46,8 @@ RUN export uid=1000 gid=1000 && \
     echo "developer ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/developer && \
     chmod 0440 /etc/sudoers.d/developer && \
     chown ${uid}:${gid} -R /home/developer
+
+RUN echo 'developer:sonicpi' | chpasswd
 
 RUN sudo usermod -aG audio developer
 
@@ -90,8 +93,6 @@ EXPOSE 22
 # to run the QT app inside Docker as well
 #CMD ["/bin/bash", "-i", "-l", "-c", "/usr/src/app/app/gui/qt/rp-app-bin"]
 
-USER root
-
 # Must be run as root for sshd to work
-RUN /usr/bin/ssh-keygen -A
-CMD /usr/sbin/sshd -D
+RUN sudo /usr/bin/ssh-keygen -A
+CMD sudo /usr/sbin/sshd -D

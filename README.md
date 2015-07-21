@@ -1,6 +1,5 @@
 # Running Sonic Pi in Docker
 
-_warning_: this is a lot less fun than you'd think...
 Probably only of interest to Sonic Pi developers or anyone looking to
 Dockerize similar audio applications that used `jackd`.
 
@@ -14,6 +13,13 @@ This uses Vagrant and VirtualBox so you'll need plenty of spare RAM and disk spa
 brew tap caskroom/cask
 brew cask install virtualbox
 brew cask install vagrant
+```
+
+Alternatively install vagrant from [https://www.vagrantup.com/downloads.html](https://www.vagrantup.com/downloads.html)
+
+Then start a new terminal and run:
+
+```
 vagrant plugin install vagrant-docker-exec
 vagrant up
 ```
@@ -22,24 +28,23 @@ The first time this will take something like 30 minutes as its
 building a docker host with 40Gb of disk and 2Gb of RAM, and then
 proceeding to build the docker container for Sonic Pi
 
-When that's up you'll be rewarded with a beep
+To run the GUI you have to ssh into the running Docker instance with X11 forwarding like so:
 
 ```
-vagrant docker-exec -- sonic_pi "play 70"
+vagrant ssh -- -Y
 ```
 
-For something slightly more fun try
+It will ask you for the password which is `sonicpi`
+
+Once you're logged into the container, run the following to start the GUI:
 
 ```
-vagrant docker-exec -- sonic_pi "$(wget -O - https://gist.githubusercontent.com/xavriley/ab0e7ad9b956c18af9f9/raw/68157657a9324e37fa8868a6137af6ace6952e30/wxg_piece.rb)"
-# Listen to the output for a while
-vagrant docker-exec -- sonic_pi "stop"
+developer@97fc279e468b:~$ /usr/src/app/app/gui/qt/rp-app-bin
 ```
 
-NB with that last command it's actually the OSX host that's downloading the gist,
-not the Docker container which is just being fed a string.
+To quit just ctrl+c the GUI process and log out of the SSH session with ctrl+d
 
-To stop the Docker container just run
+Then to stop the Docker container just run
 
 ```
 vagrant halt
@@ -59,7 +64,7 @@ VAGRANT_VAGRANTFILE=DockerHostVagrantfile vagrant halt
 
 ## Rationale
 
-I'm looking to get Docker working so that we can have a way to run sandboxed
+With Docker we have a way to run sandboxed
 Sonic Pi code on a server for recording Gists in a sandbox and the like. It would also help
 in some development situations, mainly to test against a similar distro to Raspbian
 but on a faster machine than the RPi.
@@ -67,8 +72,8 @@ but on a faster machine than the RPi.
 ## Goals
 
 - [x] Make beeps using sonic\_pi gem
-- [ ] Run sshd server
-- [ ] Run the GUI via X11 and ssh forwarding
+- [x] Run sshd server
+- [x] Run the GUI via X11 and ssh forwarding
 - [ ] Remove the `--privileged` flag so code is truly sandboxed
 
 ## Related blog posts
@@ -85,6 +90,23 @@ heres a "reading list" of useful resources in Dockerizing audio applications in 
 - [Running an SSH service on Docker](https://docs.docker.com/examples/running_ssh_service/)
 - [SuperCollider and jackd the easy way](http://carlocapocasa.com/supercollider-jack-the-easy-way/)
 - [Top 5 wrong ways to fix your (Linux) audio](http://voices.canonical.com/david.henningsson/2012/07/13/top-five-wrong-ways-to-fix-your-audio/)
+
+## Headless Sonic Pi
+
+```
+vagrant docker-exec -- sonic_pi "play 70"
+```
+
+For something slightly more fun try
+
+```
+vagrant docker-exec -- sonic_pi "$(wget -O - https://gist.githubusercontent.com/xavriley/ab0e7ad9b956c18af9f9/raw/68157657a9324e37fa8868a6137af6ace6952e30/wxg_piece.rb)"
+# Listen to the output for a while
+vagrant docker-exec -- sonic_pi "stop"
+```
+
+NB with that last command it's actually the OSX host that's downloading the gist,
+not the Docker container which is just being fed a string.
 
 ## `boot2docker` won't work for this
 
