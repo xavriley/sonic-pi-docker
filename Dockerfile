@@ -6,7 +6,9 @@ RUN apt-get update && \
   DEBIAN_FRONTEND=noninteractive apt-get -y install \
     git-core \
     sudo \
+    fftw3-dev \
     supercollider-server \
+    supercollider-dev \
     libqt5scintilla2-dev \
     libqt5scintilla2-l10n \
     qt5-qmake \
@@ -32,16 +34,7 @@ RUN apt-get update && \
     echo "X11Forwarding yes" >> /etc/ssh/sshd_config && \
     echo "X11UseLocalhost no" >> /etc/ssh/sshd_config
 
-# TODO
-# * sc3 plugins
-# - clone sc3 plugins repo git://github.com/supercollider/sc3-plugins.git
-# - do a git submodult init and update at root dir
-# - sudo apt-get install supercollider-dev fftw3-dev
-# - mkdir build && cd build
-# - cmake -DSC_PATH=/usr/include/SuperCollider
-# - make
-
-ENV LANG C.UTF-8
+ENV LANG en_GB.UTF-8
 
 # RUN mv /etc/security/limits.d/audio.conf.disabled /etc/security/limits.d/audio.conf
 # TODO figure out how to get jackd2 working
@@ -59,6 +52,13 @@ RUN export uid=1000 gid=1000 && \
 RUN echo 'developer:sonicpi' | chpasswd
 
 RUN sudo usermod -aG audio developer
+
+# Build the SuperCollider Extra UGens
+RUN cd /usr/src && git clone git://github.com/supercollider/sc3-plugins.git && \
+    cd sc3-plugins && git submodule init && git submodule update && \
+    mkdir build && cd build && \
+    cmake -DSC_PATH=/usr/include/SuperCollider -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release .. && \
+    make && make install && ldconfig
 
 # app is a significant folder for the Ruby baseimage
 RUN cd /usr/src && git clone https://github.com/samaaron/sonic-pi.git app
