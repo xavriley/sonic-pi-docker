@@ -3,7 +3,8 @@ FROM heroku/heroku:16
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A69BAFCB966EF2D2
 RUN echo "deb http://ppa.launchpad.net/sonic-pi/ppa/ubuntu xenial main" >> /etc/apt/sources.list
-RUN apt-get update && apt-get -y install sonic-pi netcat sudo
+
+RUN apt-get update && apt-get -y install sonic-pi-server netcat sudo
 
 ENV LANG en_GB.UTF-8
 
