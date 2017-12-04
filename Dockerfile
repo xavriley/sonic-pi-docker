@@ -32,7 +32,7 @@ RUN export uid=1000 gid=1000 && \
 
 RUN echo 'developer:sonicpi' | chpasswd
 
-RUN sudo usermod -aG audio developer
+RUN /bin/bash -c "usermod -aG audio developer"
 RUN echo "GEM_HOME=$HOME/.gem" >> /home/developer/.bash_profile
 RUN echo "PATH=$PATH:$HOME/.gem/bin" >> /home/developer/.bash_profile
 RUN chmod 755 /home/developer
