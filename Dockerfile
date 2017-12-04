@@ -14,10 +14,13 @@ ENV LANG en_GB.UTF-8
 # RUN dpkg-reconfigure -p high jackd2
 # jackd2 throws errors about memory access so use jackd1 instead
 # source http://stackoverflow.com/a/37980481
-RUN apt-get -y install jackd1
+RUN apt-get install -y software-properties-common && \
+    add-apt-repository -y multiverse && \
+    apt-get update && \
+    apt-get install -y icecast2 darkice libasound2 libasound2-plugins alsa-utils alsa-oss jack-tools jackd1 supercollider xvfb curl
 
-RUN echo "@audio          -       rtprio          99" >> /etc/security/limits.conf
-RUN dpkg-reconfigure -p high jackd
+# RUN echo "@audio          -       rtprio          99" >> /etc/security/limits.conf
+# RUN dpkg-reconfigure -p high jackd
 
 RUN export uid=1000 gid=1000 && \
 		mkdir -p /home/developer && \
@@ -33,6 +36,9 @@ RUN sudo usermod -aG audio developer
 RUN echo "GEM_HOME=$HOME/.gem" >> /home/developer/.bash_profile
 RUN echo "PATH=$PATH:$HOME/.gem/bin" >> /home/developer/.bash_profile
 RUN chmod 755 /home/developer
+
+COPY asoundrc /root/.asoundrc
+COPY asoundrc /home/developer/.asoundrc
 
 USER developer
 
