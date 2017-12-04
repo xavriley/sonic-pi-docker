@@ -9,6 +9,7 @@ RUN apt-get update && apt-get -y install sonic-pi-server netcat sudo
 ENV LANG en_GB.UTF-8
 
 # RUN mv /etc/security/limits.d/audio.conf.disabled /etc/security/limits.d/audio.conf
+# RUN dpkg-reconfigure -p high jackd
 # TODO figure out how to get jackd2 working
 # RUN dpkg-reconfigure -p high jackd2
 # jackd2 throws errors about memory access so use jackd1 instead
