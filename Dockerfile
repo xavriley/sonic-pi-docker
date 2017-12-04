@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM heroku/heroku:16
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A69BAFCB966EF2D2
