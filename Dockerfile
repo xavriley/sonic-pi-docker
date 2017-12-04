@@ -56,7 +56,7 @@ EXPOSE 4567
 # boot jack with dummy backend
 # boot sonic pi server
 # boot web server
-CMD ["/bin/bash", "-c", "(nc -u 127.0.0.1 4558 &) && (jackd -r -t 100000  -d dummy -r 44100 &) && (/usr/lib/sonic-pi/server/bin/sonic-pi-server.rb &) && ruby server.rb -p $PORT -o 0.0.0.0"]
+CMD ["/bin/bash", "-c", "(nc -dlk -u 127.0.0.1 4558 &) && (jackd -r -t 100000  -d dummy -r 44100 &) && sleep 15 && (/usr/lib/sonic-pi/server/bin/sonic-pi-server.rb &) && ruby server.rb -p $PORT -o 0.0.0.0"]
 
 #CMD ["/usr/bin/bash", "-c", "/usr/bin/ruby", "./server.rb"]
 
