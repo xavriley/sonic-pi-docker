@@ -33,20 +33,23 @@ Sonic Pi code on a server for recording Gists, tweets and the like.
 Having more attention on Docker also has the nice side effect of offering an
 alternative to Linux users
 
-
 ## Goals
 
 - [x] Make beeps using sonic\_pi gem
 - [x] Remove the `--privileged` flag so code is truly sandboxed
 - [x] Upload generated audio to S3 bucket
 - [x] Run on Heroku :metal:
-- [ ] Offer permalinks to generated files
+- [x] Offer permalinks to generated files
 - [ ] Upgrade from Sonic Pi 2.10
 - [ ] Convert OSC logs to proper text in Heroku logs
 - [ ] Don't regenerate files if we have seen a (whitespace normalized) equivalent before
-- [ ] Don't use sleep - move to using a single threaded background queue like Sidekiq
+- [x] Don't use sleep - move to using a single threaded background queue like Sidekiq
+- [x] Store code, author, source etc. in json on S3
 - [ ] Store code, author, source etc. in a database
-- [ ] Add a nicer frontend to make this a true community resource
+- [ ] Enforce login to prevent abuse
+- [ ] Basic security measures (prevent coin mining etc)
+- [ ] Convert to mp3 to reduce download size
+- [x] Add a nicer frontend to make this a true community resource
 - [ ] Make a twitter bot to listen for `#sp140` and reply with rendered audio
 
 ## Extension goals

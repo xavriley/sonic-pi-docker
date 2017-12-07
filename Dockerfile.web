@@ -43,12 +43,13 @@ COPY asoundrc /home/developer/.asoundrc
 USER developer
 
 WORKDIR /home/developer
+
 ADD Gemfile .
-ADD server.rb .
-
 RUN /bin/bash -c "source ~/.bash_profile && sudo gem install bundler"
-
 RUN /bin/bash -c "cd /home/developer && bundle install --gemfile=./Gemfile"
+
+ADD server.rb .
+COPY lib/workers/render_worker.rb /home/developer/lib/workers/render_worker.rb
 
 EXPOSE 4567
 
@@ -56,7 +57,7 @@ EXPOSE 4567
 # boot jack with dummy backend
 # boot sonic pi server
 # boot web server
-CMD ["/bin/bash", "-c", "(nc -dlk -u 127.0.0.1 4558 &) && (jackd -r -t 100000  -d dummy -r 44100 &) && sleep 15 && (/usr/lib/sonic-pi/server/bin/sonic-pi-server.rb &) && ruby server.rb -p $PORT -o 0.0.0.0"]
+CMD ["/bin/bash", "-c", "ruby server.rb -p $PORT -o 0.0.0.0"]
 
 #CMD ["/usr/bin/bash", "-c", "/usr/bin/ruby", "./server.rb"]
 
